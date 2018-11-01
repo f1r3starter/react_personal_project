@@ -133,8 +133,8 @@ export default class Scheduler extends Component {
 
         return (
             <section className = { Styles.scheduler }>
+                <Spinner isSpinning = { isTasksFetching } />
                 <main>
-                    <Spinner isSpinning = { isTasksFetching } />
                     <header>
                         <h1>Планировщик задач</h1>
                         <input
@@ -147,7 +147,7 @@ export default class Scheduler extends Component {
                     <section>
                         <form onSubmit = { this._createTaskAsync }>
                             <input
-                                maxLength = '50'
+                                maxLength = { 50 }
                                 placeholder = 'Описaние моей новой задачи'
                                 type = 'text'
                                 value = { newTaskMessage }
@@ -162,7 +162,6 @@ export default class Scheduler extends Component {
                     <footer>
                         <Checkbox
                             { ...checked }
-                            inlineBlock
                             color1 = '#363636'
                             color2 = '#fff'
                             onClick = { this._completeAllTasksAsync }

@@ -26,7 +26,7 @@ export const api = {
                 'Content-Type': 'application/json',
                 Authorization:  TOKEN,
             },
-            body:           JSON.stringify({
+            body: JSON.stringify({
                 message,
             }),
         });
@@ -47,7 +47,7 @@ export const api = {
                 'Content-Type': 'application/json',
                 Authorization:  TOKEN,
             },
-            body:           JSON.stringify([
+            body: JSON.stringify([
                 updatedTask
             ]),
         });
@@ -82,7 +82,7 @@ export const api = {
                 'Content-Type': 'application/json',
                 Authorization:  TOKEN,
             },
-            body:           JSON.stringify([task]),
+            body: JSON.stringify([task]),
         }));
 
         await Promise.all(fetchTasks);
