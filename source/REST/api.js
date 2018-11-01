@@ -25,10 +25,10 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
                 Authorization:  TOKEN,
-                data:           JSON.stringify({
-                    message,
-                }),
             },
+            body:           JSON.stringify({
+                message,
+            }),
         });
 
         if (response.status !== 200) {
@@ -46,10 +46,10 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
                 Authorization:  TOKEN,
-                data:           JSON.stringify([
-                    updatedTask
-                ]),
             },
+            body:           JSON.stringify([
+                updatedTask
+            ]),
         });
 
         if (response.status !== 200) {
@@ -81,8 +81,8 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
                 Authorization:  TOKEN,
-                data:           JSON.stringify([task]),
             },
+            body:           JSON.stringify([task]),
         }));
 
         await Promise.all(fetchTasks);
