@@ -1,11 +1,14 @@
 // Core
 import React, { Component } from 'react';
+import FlipMove from 'react-flip-move';
 
 // Instruments
 import Styles from './styles.m.css';
 import { api } from '../../REST';
 import Checkbox from "../../theme/assets/Checkbox";
-import Spinner from "../Spinner"; // ! Импорт модуля API должен иметь именно такой вид (import { api } from '../../REST')
+import Spinner from "../Spinner";
+import Task from "../Task"; // ! Импорт модуля API должен иметь именно такой вид (import { api } from '../../REST')
+import { sortTasksByGroup } from "../../instruments";
 
 export default class Scheduler extends Component {
     state = {
@@ -21,7 +24,7 @@ export default class Scheduler extends Component {
 
     _updateTasksFilter = (event) => {
         this.setState({
-            tasksFilter: event.target.value,
+            tasksFilter: event.target.value.toLocaleLowerCase(),
         });
     };
 
@@ -29,7 +32,7 @@ export default class Scheduler extends Component {
         const { newTaskMessage } = this.state;
         const newMessage = event.target.value;
 
-        if (newTaskMessage.toLocaleLowerCase() !== newMessage.toLocaleLowerCase()) {
+        if (newTaskMessage !== newMessage) {
             this.setState({
                 newTaskMessage: newMessage,
             });
@@ -38,6 +41,10 @@ export default class Scheduler extends Component {
 
     _getAllCompleted = () => {
         const { tasks } = this.state;
+
+        if (!tasks) {
+            return false;
+        }
 
         return !tasks.some((task) => task.completed === false);
     };
@@ -60,7 +67,7 @@ export default class Scheduler extends Component {
         const tasks = await api.fetchTasks();
 
         this.setState({
-            tasks,
+            tasks: sortTasksByGroup(tasks),
         });
 
         this._setTasksFetchingState(false);
@@ -86,10 +93,16 @@ export default class Scheduler extends Component {
         this._setTasksFetchingState(false);
     };
 
-    _updateTaskAsync = async (taskMessage) => {
+    _updateTaskAsync = async (updatedTask) => {
         this._setTasksFetchingState(true);
 
-        await api.updateTask(taskMessage);
+        await api.updateTask(updatedTask);
+
+        this.setState(({ tasks }) => ({
+            tasks: tasks.map(
+                (task) => task.id === updatedTask.id ? updatedTask : task,
+            ),
+        }));
 
         this._setTasksFetchingState(false);
     };
@@ -113,23 +126,37 @@ export default class Scheduler extends Component {
         const uncompletedTasks = tasks.filter((task) => task.completed === false);
 
         if (uncompletedTasks.length === 0) {
-            return 0;
+            return null;
         }
 
         this._setTasksFetchingState(true);
 
+        uncompletedTasks.forEach((task) => task.completed = true);
+
         await api.completeAllTasks(uncompletedTasks);
 
         this.setState({
-            tasks: tasks.forEach((task) => task.completed = true),
+            tasks: uncompletedTasks,
         });
 
         this._setTasksFetchingState(false);
     };
 
     render () {
-        const { newTaskMessage, tasksFilter, isTasksFetching } = this.state;
+        const { newTaskMessage, tasksFilter, isTasksFetching, tasks } = this.state;
         const checked = this._getAllCompleted();
+
+        const tasksJSX = sortTasksByGroup(tasks).map((task) => {
+            return (
+                <Task
+                    { ...task }
+                    _removeTaskAsync = { this._removeTaskAsync }
+                    _updateTaskAsync = { this._updateTaskAsync }
+                    key = { task.id }
+                />
+
+            );
+        });
 
         return (
             <section className = { Styles.scheduler }>
@@ -147,6 +174,7 @@ export default class Scheduler extends Component {
                     <section>
                         <form onSubmit = { this._createTaskAsync }>
                             <input
+                                className = 'createTask'
                                 maxLength = { 50 }
                                 placeholder = 'Описaние моей новой задачи'
                                 type = 'text'
@@ -155,13 +183,17 @@ export default class Scheduler extends Component {
                             />
                             <button>Добавить задачу</button>
                         </form>
-                        <div>
-                            <ul />
+                        <div className = 'overlay'>
+                            <ul>
+                                <FlipMove duration = { 400 }>
+                                    { tasksJSX }
+                                </FlipMove>
+                            </ul>
                         </div>
                     </section>
                     <footer>
                         <Checkbox
-                            { ...checked }
+                            checked = { checked }
                             color1 = '#363636'
                             color2 = '#fff'
                             onClick = { this._completeAllTasksAsync }
